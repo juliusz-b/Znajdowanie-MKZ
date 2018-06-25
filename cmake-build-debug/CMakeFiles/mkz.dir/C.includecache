@@ -6,11 +6,15 @@
 
 #IncludeRegexTransform: 
 
-/cygdrive/c/Users/Juliusz/CLionProjects/mkz/main.c
+/cygdrive/c/Users/julek/Documents/GIT/Znajdowanie-MKZ/main.c
 stdio.h
 -
 stdlib.h
 -
 string.h
+-
+stdbool.h
+-
+limits.h
 -
 
