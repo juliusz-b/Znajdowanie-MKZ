@@ -16,9 +16,77 @@ int pary_zgodne[PARY_MAX][PARY_LENGTH] = {0};
 
 int all_elements[PARY_MAX] = {0};
 
+int while_loop_iterator = 0;
+
+
+typedef struct para_s para_t;
+struct para_s{
+    int para_a[PARY_LENGTH];
+    para_t *nast;
+};
+
+para_t *para_first = NULL;
+para_t *para_last = NULL;
+para_t *para_one_time_use;
+
 
 int main() {
 
+    /*
+     *
+     *  REALIZACJA KOLEJKI
+     *
+     */
+
+
+
+    void dodaj_pare(char *buffor, int buffor_len)
+    {
+        para_t *nowa_para = malloc(sizeof(para_t));
+        nowa_para->nast = NULL;
+
+        for (int i = 0, for_number_checker = 0; i < buffor_len; ++i)
+        {
+            if ((buffor[i]>=48)&&(buffor[i]<=57))
+            {
+                if (for_number_checker>=PARY_LENGTH)
+                {
+                    printf("Mozesz podac pare o dlugosci %d!\n",PARY_LENGTH);
+                    exit(1);
+                }
+                nowa_para->para_a[for_number_checker] = atoi(&buffor[i]);
+                for_number_checker++;
+            }
+        }
+
+        para_t *stara_para;
+        stara_para = para_last;
+
+
+        if (para_first == NULL)
+        {
+            para_first = nowa_para;
+            para_last = nowa_para;
+        }
+        else
+        {
+            stara_para->nast = nowa_para;
+            para_last = nowa_para;
+        }
+
+    }
+
+
+    void printhe()
+    {
+        para_t *para_print = para_first;
+
+        while(para_print!=NULL)
+        {
+            printf("Para to: %d %d\n", para_print->para_a[0], para_print->para_a[1]);
+            para_print = para_print->nast;
+        }
+    }
 
     /*
      *
@@ -32,34 +100,20 @@ int main() {
 
     printf("Witaj! Podawaj pary zgodne :V\n");
 
-    int while_loop_iterator = 0;
 
     char while_loop_buffor[PARY_MAX];
 
     while ((while_loop_buffor[0] != 'q')&&(while_loop_buffor[1] != 'q'))
     {
-        printf("Podaj %d pare zgodna (oddzielajac spacja, przecinkiem lub innym znakiem): ", while_loop_iterator);
+        printf("Podaj %d pare zgodna (oddzielajac spacja, przecinkiem lub innym znakiem): ", while_loop_iterator+1);
 
         fgets(while_loop_buffor, PARY_MAX, stdin);
 
-        int test = strlen(while_loop_buffor);
 
-        for (int i = 0, for_number_checker = 0; i < strlen(while_loop_buffor); ++i)
-        {
-            if ((while_loop_buffor[i]>=48)&&(while_loop_buffor[i]<=57))
-            {
-                if (for_number_checker>=PARY_LENGTH)
-                {
-                    printf("Mozesz podac pare o dlugosci %d!\n",PARY_LENGTH);
-                    exit(1);
-                }
-                pary_zgodne[while_loop_iterator][for_number_checker] = atoi(&while_loop_buffor[i]);
-                for_number_checker++;
-            }
-        }
         if((while_loop_buffor[0] != 'q')&&(while_loop_buffor[1] != 'q'))
         {
-            printf("%d. podana para zgodna to: %d %d \n", while_loop_iterator, pary_zgodne[while_loop_iterator][0],pary_zgodne[while_loop_iterator][1]);
+            dodaj_pare(while_loop_buffor, strlen(while_loop_buffor));
+            printf("%d. podana para zgodna to: %d %d \n", while_loop_iterator+1, para_last->para_a[0],para_last->para_a[1]);
             while_loop_iterator++;
         }
     }
@@ -69,39 +123,32 @@ int main() {
 
     /*
      *
-     * Znajdz najwiekszy element ze zbioru
+     * Znajdz najwiekszy i najmniejszy element ze zbioru
      *
      */
 
     int greatest_element = 0;
+    int smallest_element = INT_MAX;
 
+    para_one_time_use = para_first;
     for (int i = 0; i < while_loop_iterator; ++i)
     {
-        for (int j = 0; j < PARY_LENGTH; ++j)
+        while(para_one_time_use!=NULL)
         {
-            if ((pary_zgodne[i][j]>=greatest_element)&&(pary_zgodne[i][j] != 'q'))
-                greatest_element = pary_zgodne[i][j];
+            for (int j = 0; j < PARY_LENGTH; ++j)
+            {
+                if ((para_one_time_use->para_a[j]>=greatest_element)&&(para_one_time_use->para_a[j] != 'q'))
+                    greatest_element = para_one_time_use->para_a[j];
+
+                if ((para_one_time_use->para_a[j]<=smallest_element)&&(para_one_time_use->para_a[j] != 'q'))
+                    smallest_element = para_one_time_use->para_a[j];
+            }
+
+            para_one_time_use = para_one_time_use->nast;
         }
     }
 
     printf("Najwiekszy element to: %d\n", greatest_element);
-
-    /*
-     *
-     * Znajdz najmniejszy element ze zbioru
-     *
-     */
-
-    int smallest_element = INT_MAX;
-
-    for (int i = 0; i < while_loop_iterator; ++i)
-    {
-        for (int j = 0; j < PARY_LENGTH; ++j)
-        {
-            if ((pary_zgodne[i][j]<=smallest_element)&&(pary_zgodne[i][j] != 'q'))
-                smallest_element = pary_zgodne[i][j];
-        }
-    }
 
     printf("Najmniejszy element to: %d\n", smallest_element);
 
@@ -115,10 +162,14 @@ int main() {
 
 
     bool found_in_this_iteration = false;
-    for (int m = 0; m < PARY_MAX ; ++m) {
-        for (int i = 0; i < while_loop_iterator; ++i) {
+
+    for (int m = 0; m < PARY_MAX ; ++m)
+    {
+        para_one_time_use = para_first;
+        while(para_one_time_use!=NULL)
+        {
             for (int j = 0; j < PARY_LENGTH; ++j) {
-                if (pary_zgodne[i][j] == m)
+                if (para_one_time_use->para_a[j] == m)
                 {
                     all_elements[number_of_non_repeat_elements] = m;
                     number_of_non_repeat_elements++;
@@ -128,11 +179,14 @@ int main() {
             if (found_in_this_iteration)
                 break;
 
+            para_one_time_use = para_one_time_use->nast;
         }
         found_in_this_iteration=false;
-
     }
-    for (int n = 0; n < number_of_non_repeat_elements; ++n) {
+
+
+    for (int n = 0; n < number_of_non_repeat_elements; ++n)
+    {
         if (n==0)
             printf("Podano nastepujace elementy: ");
         printf("%d", all_elements[n]);
@@ -160,33 +214,35 @@ int main() {
 
     void new_create_left_column()
     {
-        for (int i = 0, number_of_found_elements = 0; i < number_of_non_repeat_elements; ++i)
+        for (int i = 0, number_of_found_elements = 0, position_of_current_element = 0, position_of_current_pair_element = 0; i < number_of_non_repeat_elements; ++i)
         {
             number_of_found_elements = 0;
 
-            for (int k = 0, position_of_current_element = 0, position_of_current_pair_element = 0; k < while_loop_iterator; ++k)
+            para_one_time_use = para_first;
+            while(para_one_time_use!=NULL)
             {
+                position_of_current_element = 0;
+                position_of_current_pair_element = 0;
+                if ((para_one_time_use->para_a[0] == all_elements[i]))
+                {
                     position_of_current_element = 0;
+                    position_of_current_pair_element = 1;
+                }
+                if ((para_one_time_use->para_a[1] == all_elements[i]))
+                {
+                    position_of_current_element = 1;
                     position_of_current_pair_element = 0;
-                    if ((pary_zgodne[k][0] == all_elements[i]))
-                    {
-                        position_of_current_element = 0;
-                        position_of_current_pair_element = 1;
-                    }
-                    if ((pary_zgodne[k][1] == all_elements[i]))
-                    {
-                        position_of_current_element = 1;
-                        position_of_current_pair_element = 0;
-                    }
+                }
 
-                    if ((position_of_current_element != position_of_current_pair_element) && (pary_zgodne[k][position_of_current_element] > pary_zgodne[k][position_of_current_pair_element]))
-                    {
-                        pairs_table_elements[i][number_of_found_elements] = pary_zgodne[k][position_of_current_pair_element];
-                    }
-                    number_of_found_elements++;
-
-
+                if ((position_of_current_element != position_of_current_pair_element) && (para_one_time_use->para_a[position_of_current_element] > para_one_time_use->para_a[position_of_current_pair_element]))
+                {
+                    pairs_table_elements[i][number_of_found_elements] = para_one_time_use->para_a[position_of_current_pair_element];
+                }
+                number_of_found_elements++;
+                // /////////////////////////////////////////////
+                para_one_time_use = para_one_time_use->nast;
             }
+
 
         }
 
@@ -212,6 +268,22 @@ int main() {
 
 
 
+    int pairs_table_elements_right[number_of_non_repeat_elements][PARY_MAX];
+    void create_right_column()
+    {
+        for (int i = 0; i < number_of_non_repeat_elements; ++i)
+        {
+            printf("S[%d] = ", all_elements[i]);
+            for (int j = 0; j < PARY_MAX; ++j) {
+
+
+            }
+
+        }
+    }
+
+
+
 
     void create_left_column()
     {
@@ -224,6 +296,35 @@ int main() {
             {
                 for (int j = 0; j < PARY_MAX; ++j) {
 
+
+                    para_one_time_use = para_first;
+                    while(para_one_time_use!=NULL)
+                    {
+                        int position_of_current_element = 0;
+                        int position_of_current_pair_element = 0;
+                        if ((para_one_time_use->para_a[0]==current_element))
+                        {
+                            position_of_current_element = 0;
+                            position_of_current_pair_element = 1;
+                        }
+                        else if ((para_one_time_use->para_a[1]==current_element))
+                        {
+                            position_of_current_element = 1;
+                            position_of_current_pair_element = 0;
+                        }
+                        else
+                        {
+                            // position_of_current_element = INT_MAX;
+                            break;
+                        }
+                        if (para_one_time_use->para_a[position_of_current_element] > para_one_time_use->para_a[position_of_current_pair_element])
+                        {
+                            pairs_table_elements[k][j];
+                        }
+                        // /////////////////////////////////////////////
+                        para_one_time_use = para_one_time_use->nast;
+                    }
+/*
                     for (int l = 0; l < while_loop_iterator; ++l)
                     {
                         int position_of_current_element = 0;
@@ -250,7 +351,7 @@ int main() {
 
 
 
-                    }
+                    }*/
 
 
 
@@ -266,10 +367,6 @@ int main() {
         }
     }
 
-    void create_right_column()
-    {
-
-    }
 
 
     void create_table()
